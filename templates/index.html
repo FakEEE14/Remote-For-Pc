@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>PC Remote Control</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{{ url_for('static', filename='favicon.ico') }}"
+    />
+
+    <style>
+      :root {
+        --primary: #667eea;
+        --primary-dark: #5a6fd8;
+        --success: #27ae60;
+        --danger: #e74c3c;
+        --warning: #f39c12;
+        --info: #3498db;
+        --dark: #2c3e50;
+        --muted: #6c757d;
+        --bg-gradient: linear-gradient(
+          135deg,
+          #1e1e2f 0%,
+          #16213e 50%,
+          #0f3460 100%
+        );
+        --surface: #2c2c3c;
+        --surface-hover: #3a3a4a;
+        --text-primary: #ffffff;
+        --text-secondary: #b0b0b0;
+        --border: rgba(255, 255, 255, 0.1);
+        --shadow: rgba(0, 0, 0, 0.5);
+        --backdrop: rgba(44, 44, 60, 0.95);
+      }
+      [data-theme="light"] {
+        --bg-gradient: linear-gradient(135deg, #f0f2f5 0%, #e6e9ed 100%);
+        --surface: #ffffff;
+        --surface-hover: #f8f9fa;
+        --text-primary: #2c3e50;
+        --text-secondary: #6c757d;
+        --border: rgba(0, 0, 0, 0.1);
+        --shadow: rgba(0, 0, 0, 0.1);
+        --backdrop: rgba(255, 255, 255, 0.95);
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        background: var(--bg-gradient);
+        color: var(--text-primary);
+        min-height: 100vh;
+        padding: 1rem;
+        transition: background 0.3s, color 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .container {
+        max-width: 1200px;
+        width: 100%;
+        margin: 0 auto;
+        background: var(--backdrop);
+        backdrop-filter: blur(20px);
+        border-radius: 24px;
+        box-shadow: 0 20px 60px var(--shadow), 0 0 0 1px var(--border);
+        border: 1px solid var(--border);
+        overflow: hidden;
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 2rem;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+      }
+      .header h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary), var(--info));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .header-controls {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+      }
+      .status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+      }
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--success);
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+      .btn {
+        border: none;
+        border-radius: 12px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        user-select: none;
+      }
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .btn-icon {
+        background: transparent;
+        color: var(--text-primary);
+        padding: 0.75rem;
+        font-size: 1.125rem;
+      }
+      .btn-icon:hover:not(:disabled) {
+        background: var(--surface-hover);
+        transform: scale(1.05);
+      }
+      .btn-danger {
+        background: var(--danger);
+        color: white;
+        padding: 0.75rem 1.5rem;
+      }
+      .btn-danger:hover:not(:disabled) {
+        background: #c0392b;
+        transform: translateY(-2px);
+      }
+      .main-content {
+        padding: 2rem;
+        display: grid;
+        gap: 2rem;
+      }
+      .category {
+        background: linear-gradient(
+          135deg,
+          var(--surface) 0%,
+          rgba(102, 126, 234, 0.05) 100%
+        );
+        border-radius: 16px;
+        border: 1px solid var(--border);
+      }
+      .category-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .category-header h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+      .category-icon {
+        width: 24px;
+        height: 24px;
+        color: var(--primary);
+      }
+      .category-content {
+        padding: 1.5rem 2rem;
+      }
+      .controls-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+      }
+      .control-card {
+        background: linear-gradient(
+          135deg,
+          var(--surface) 0%,
+          rgba(102, 126, 234, 0.03) 100%
+        );
+        border: 2px solid var(--border);
+        border-radius: 16px;
+        padding: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+      }
+      .control-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--primary);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+      }
+      .control-card:active {
+        transform: translateY(-2px) scale(0.98);
+      }
+      .control-icon {
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
+        color: var(--primary);
+        transition: all 0.3s;
+      }
+      .control-card:hover .control-icon {
+        transform: scale(1.5);
+      }
+      .control-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+      .control-subtitle {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+      }
+      .control-card.running {
+        border-color: var(--success);
+        background: rgba(39, 174, 96, 0.1);
+        box-shadow: 0 0 20px rgba(39, 174, 96, 0.3);
+      }
+      .control-card.running .control-icon {
+        color: var(--success);
+      }
+      .control-card.error {
+        border-color: var(--danger);
+        background: rgba(231, 76, 60, 0.1);
+      }
+      .control-card.warning {
+        border-color: var(--warning);
+        background: rgba(243, 156, 18, 0.1);
+      }
+      .volume-control {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, var(--primary), var(--info));
+        /* background: linear-gradient(135deg,#667eea 0%,#764ba2 50%,#f093fb 100%); */
+        border-radius: 16px;
+        color: white;
+        margin: 0 auto 1rem auto;
+        opacity: 0.1;
+        transition: opacity 0.3s ease-in-out;
+        width: 100%;
+        max-width: none;
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+      }
+      .volume-slider {
+        appearance: none;
+        width: 100%;
+        height: 6px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.3);
+        /* background: linear-gradient(to right, #2ecc71, #f1c40f, #e74c3c); */
+        outline: none;
+        cursor: pointer;
+      }
+      .volume-slider::-webkit-slider-thumb {
+        appearance: none;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #fff;
+        border: 2px solid #333;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+      .volume-slider::-webkit-slider-thumb:hover {
+        transform: scale(1.3);
+      }
+      .volume-slider::-moz-range-thumb {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #fff;
+        border: 2px solid #333;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+      .volume-display {
+        font-weight: 600;
+        min-width: 50px;
+        text-align: center;
+        flex-shrink: 0;
+      }
+      .volume-icon {
+        flex-shrink: 0;
+        width: 20px;
+        text-align: center;
+      }
+      .media-controls {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+      .media-btn {
+        flex: 1;
+        padding: 1rem;
+        background: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        color: var(--text-primary);
+        cursor: pointer;
+        /* transition: all 0.2s; */
+        transition: transform 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+      .media-btn.running {
+        border-color: var(--success);
+        background: rgba(39, 174, 96, 0.1);
+        color: var(--success);
+        box-shadow: 0 0 15px rgba(39, 174, 96, 0.3);
+      }
+      .media-btn:hover {
+        transform: scale(1.05) translateY(-2px);
+        border-color: var(--primary);
+        box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+      }
+      .media-btn i {
+        transition: transform 0.2s ease;
+      }
+      .media-btn:hover i {
+        transform: scale(1.3);
+      }
+      .media-btn.warning {
+        border-color: var(--warning);
+        background: rgba(243, 156, 18, 0.1);
+      }
+      .media-btn.error {
+        border-color: var(--danger);
+        background: rgba(231, 76, 60, 0.1);
+      }
+      .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.75rem;
+      }
+      .quick-btn {
+        padding: 1rem;
+        background: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+        font-size: 0.875rem;
+        font-weight: 500;
+      }
+      .quick-btn:hover {
+        border-color: var(--primary);
+        transform: translateY(-2px);
+      }
+      .quick-btn i {
+        display: block;
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        color: var(--primary);
+        transition: color 0.2s;
+      }
+      .quick-btn.unmuted {
+        border-color: var(--success);
+        background: rgba(39, 174, 96, 0.1);
+      }
+      .quick-btn.unmuted i {
+        color: var(--success);
+      }
+      .quick-btn.muted {
+        border-color: var(--muted);
+        background: rgba(108, 117, 125, 0.1);
+      }
+      .quick-btn.muted i {
+        color: var(--muted);
+      }
+      .toast {
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        padding: 1rem 1.5rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: 0 8px 30px var(--shadow);
+        z-index: 1000;
+        transform: translateX(120%);
+        transition: transform 0.4s;
+      }
+      .toast.show {
+        transform: translateX(0);
+      }
+      .toast.success {
+        border-left: 4px solid var(--success);
+      }
+      .toast.error {
+        border-left: 4px solid var(--danger);
+      }
+      .loading {
+        opacity: 0.6;
+        pointer-events: none;
+        position: relative;
+      }
+      .loading::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 20px;
+        height: 20px;
+        margin-top: -10px;
+        margin-left: -10px;
+        border: 2px solid transparent;
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      @media (max-width: 768px) {
+        body {
+          padding: 0.5rem;
+          align-items: flex-start;
+        }
+        .container {
+          margin: 0;
+          border-radius: 16px;
+          min-height: calc(100vh - 1rem);
+          width: 100%;
+        }
+        .header {
+          padding: 1.5rem;
+          flex-wrap: wrap;
+          gap: 1rem;
+        }
+        .header h1 {
+          font-size: 1.5rem;
+          flex: 1;
+          min-width: 200px;
+        }
+        .header-controls {
+          flex-wrap: wrap;
+        }
+        .main-content {
+          padding: 1rem;
+          gap: 1.5rem;
+        }
+        .category-header {
+          padding: 1rem 1.5rem;
+        }
+        .category-content {
+          padding: 1rem 1.5rem;
+        }
+        .volume-control {
+          padding: 1rem;
+          gap: 0.75rem;
+          margin: 0 0 1rem 0;
+          border-radius: 12px;
+        }
+        .volume-display {
+          min-width: 45px;
+          font-size: 0.875rem;
+        }
+        .volume-icon {
+          font-size: 0.875rem;
+        }
+        .media-controls {
+          gap: 0.375rem;
+        }
+        .media-btn {
+          padding: 0.75rem 0.5rem;
+          font-size: 0.75rem;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+        .media-btn i {
+          font-size: 1rem;
+        }
+        .quick-actions {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 0.5rem;
+        }
+        .quick-btn {
+          padding: 0.75rem 0.5rem;
+          font-size: 0.75rem;
+        }
+        .quick-btn i {
+          font-size: 1rem;
+          margin-bottom: 0.25rem;
+        }
+        .controls-grid {
+          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+          gap: 0.75rem;
+        }
+        .control-card {
+          padding: 1rem;
+        }
+        .control-icon {
+          font-size: 1.5rem;
+          margin-bottom: 0.5rem;
+        }
+        .control-title {
+          font-size: 0.75rem;
+        }
+        .toast {
+          top: 1rem;
+          right: 1rem;
+          left: 1rem;
+          width: auto;
+          font-size: 0.875rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        body {
+          padding: 0.25rem;
+        }
+        .container {
+          border-radius: 12px;
+          min-height: calc(100vh - 0.5rem);
+        }
+        .header {
+          padding: 1rem;
+        }
+        .header h1 {
+          font-size: 1.25rem;
+        }
+        .main-content {
+          padding: 0.75rem;
+        }
+        .volume-control {
+          padding: 0.75rem;
+          gap: 0.5rem;
+        }
+        .volume-display {
+          min-width: 40px;
+          font-size: 0.75rem;
+        }
+        .quick-actions {
+          grid-template-columns: 1fr 1fr;
+        }
+        .controls-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body data-theme="dark">
+    <div class="container">
+      <header class="header">
+        <h1><i class="fas fa-desktop"></i> PC Remote Control</h1>
+        <div class="header-controls">
+          <button id="theme-toggle" class="btn btn-icon" title="Toggle theme">
+            <i class="fas fa-moon"></i>
+          </button>
+          <a href="/logout" class="btn btn-danger"
+            ><i class="fas fa-sign-out-alt"></i> Logout</a
+          >
+        </div>
+      </header>
+
+      <main class="main-content" id="main-content">
+        <section class="category">
+          <div class="category-header">
+            <i class="fas fa-volume-up category-icon"></i>
+            <h3>Audio Control</h3>
+          </div>
+          <div class="category-content">
+            <div class="volume-control">
+              <i class="fas fa-volume-down volume-icon"></i>
+              <input
+                type="range"
+                id="volume-slider"
+                class="volume-slider"
+                min="0"
+                max="100"
+                step="5"
+                value="0"
+              />
+              <i class="fas fa-volume-up volume-icon"></i>
+              <div class="volume-display" id="volume-display">-%</div>
+            </div>
+            <div class="media-controls">
+              <button class="media-btn warning" data-action="undo">
+                <i class="fas fa-undo"></i><span>Undo</span>
+              </button>
+              <button class="media-btn" data-action="arrow_up">
+                <i class="fas fa-arrow-up"></i><span>Up</span>
+              </button>
+              <button class="media-btn error" data-action="redo">
+                <i class="fas fa-redo"></i><span>Redo</span>
+              </button>
+            </div>
+            <div class="media-controls">
+              <button class="media-btn" data-action="arrow_left">
+                <i class="fas fa-arrow-left"></i><span>left</span>
+              </button>
+              <button class="media-btn" data-action="press_enter">
+                <i class="fas fa-level-down-alt fa-rotate-90"></i
+                ><span>Enter</span>
+              </button>
+              <button class="media-btn" data-action="arrow_right">
+                <i class="fas fa-arrow-right"></i><span>Right</span>
+              </button>
+            </div>
+
+            <div class="media-controls">
+              <button
+                class="media-btn warning"
+                data-action="press_alt_tab_cycle"
+              >
+                <i class="fas fa-window-restore"></i><span>Alt Tab</span>
+              </button>
+              <button class="media-btn" data-action="arrow_down">
+                <i class="fas fa-arrow-down"></i><span>Down</span>
+              </button>
+              <button class="media-btn error" data-action="press_alt_f4">
+                <i class="fas fa-times"></i><span>Close</span>
+              </button>
+              <!-- <div class="control-card" data-action="press_space">
+                <div class="control-icon">
+                  <i class="fas fa-ruler-horizontal"></i>
+                </div>
+                <div class="control-title">Press Space</div>
+              </div> -->
+              <!-- <button class="media-btn" data-action="refresh_window">
+                <i class="fas fa-sync-alt"></i><span>Refresh</span>
+              </button> -->
+            </div>
+            <div class="media-controls">
+              <button class="media-btn" data-action="media_previous">
+                <i class="fas fa-step-backward"></i><span>Previous</span>
+              </button>
+              <button class="media-btn" data-action="media_play_pause">
+                <i class="fas fa-play"></i><span>Play/Pause</span>
+              </button>
+              <button class="media-btn" data-action="media_next">
+                <i class="fas fa-step-forward"></i><span>Next</span>
+              </button>
+            </div>
+            <div class="quick-actions">
+              <button class="quick-btn" data-action="mute_toggle_sound">
+                <i class="fas fa-volume-up"></i> Mute Sound
+              </button>
+              <button class="quick-btn" data-action="mute_toggle_mic">
+                <i class="fas fa-microphone"></i> Mute Mic
+              </button>
+              <button class="quick-btn" data-action="audio_device_toggle">
+                <i class="fas fa-volume-up"></i> Switch Audio
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="category">
+          <div class="category-header">
+            <i class="fas fa-keyboard category-icon"></i>
+            <h3>Keyboard</h3>
+          </div>
+          <div class="category-content">
+            <div class="media-controls" style="margin-bottom: 1rem">
+              <button class="media-btn" data-action="press_esc">
+                <i class="fas fa-times-circle"></i><span>Esc</span>
+              </button>
+              <button class="media-btn" data-action="press_shift">
+                <i class="fas fa-arrow-up"></i><span>Shift</span>
+              </button>
+              <button class="media-btn" data-action="press_del">
+                <i class="fas fa-ban"></i><span>Delete</span>
+              </button>
+              <button class="media-btn" data-action="press_backspace">
+                <i class="fas fa-backspace"></i><span>Backspace</span>
+              </button>
+            </div>
+            <div class="media-controls">
+              <button class="media-btn" data-action="press_ctrl">
+                <i class="fas fa-copyright"></i><span>Ctrl</span>
+              </button>
+              <button class="media-btn" data-action="press_win">
+                <i class="fab fa-windows"></i><span>Windows</span>
+              </button>
+              <button class="media-btn" data-action="press_alt">
+                <i class="fas fa-registered"></i><span>Alt</span>
+              </button>
+              <button class="media-btn" data-action="press_tab">
+                <i class="fas fa-exchange-alt"></i><span>Tab</span>
+              </button>
+              <button class="media-btn" data-action="press_f4">
+                <i class="fas fa-window-close"></i><span>F4</span>
+              </button>
+              <button class="media-btn" data-action="press_f5">
+                <i class="fas fa-window-close"></i><span>F5</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="category">
+          <div class="category-header">
+            <i class="fas fa-rocket category-icon"></i>
+            <h3>Applications</h3>
+          </div>
+          <div class="category-content">
+            <div class="controls-grid">
+              <div class="control-card" data-app="task_manager">
+                <div class="control-icon"><i class="fas fa-tasks"></i></div>
+                <div class="control-title">Task Manager</div>
+              </div>
+              <div class="control-card" data-app="discord">
+                <div class="control-icon"><i class="fab fa-discord"></i></div>
+                <div class="control-title">Discord</div>
+              </div>
+              <div class="control-card" data-app="steam">
+                <div class="control-icon"><i class="fab fa-steam"></i></div>
+                <div class="control-title">Steam</div>
+              </div>
+              <div class="control-card" data-app="chrome">
+                <div class="control-icon"><i class="fab fa-chrome"></i></div>
+                <div class="control-title">Chrome</div>
+              </div>
+              <div class="control-card" data-app="npp">
+                <div class="control-icon"><i class="fas fa-file-alt"></i></div>
+                <div class="control-title">Notepad++</div>
+              </div>
+              <div class="control-card" data-app="mediaplayer">
+                <div class="control-icon"><i class="fas fa-music"></i></div>
+                <div class="control-title">Media Player</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="category">
+          <div class="category-header">
+            <i class="fas fa-cogs category-icon"></i>
+            <h3>System Control</h3>
+          </div>
+          <div class="category-content">
+            <div class="controls-grid">
+              <div class="control-card" data-action="screenshot">
+                <div class="control-icon"><i class="fas fa-camera"></i></div>
+                <div class="control-title">Screenshot</div>
+              </div>
+              <div class="control-card warning" data-action="sleep">
+                <div class="control-icon"><i class="fas fa-moon"></i></div>
+                <div class="control-title">Sleep</div>
+              </div>
+              <div class="control-card error" data-action="hard_sleep">
+                <div class="control-icon"><i class="fas fa-moon"></i></div>
+                <div class="control-title">Hard Sleep</div>
+              </div>
+              <div class="control-card" data-action="lock">
+                <div class="control-icon"><i class="fas fa-lock"></i></div>
+                <div class="control-title">Lock</div>
+              </div>
+              <div
+                class="control-card warning"
+                data-action="restart"
+                data-confirm="Are you sure you want to RESTART?"
+              >
+                <div class="control-icon"><i class="fas fa-redo"></i></div>
+                <div class="control-title">Restart</div>
+              </div>
+              <div
+                class="control-card error"
+                data-action="shutdown"
+                data-confirm="Are you sure you want to SHUT DOWN?"
+              >
+                <div class="control-icon"><i class="fas fa-power-off"></i></div>
+                <div class="control-title">Shutdown</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <div id="toast-container"></div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // --- State and Elements ---
+        const state = {
+          theme: localStorage.getItem("theme") || "dark",
+          volume: 0,
+          apps: {},
+          activeModifiers: [],
+          muted_state: {
+            speaker_muted: false,
+            mic_muted: false,
+            is_headphone_active: false,
+          },
+        };
+
+        const elements = {
+          body: document.body,
+          themeToggle: document.getElementById("theme-toggle"),
+          volumeSlider: document.getElementById("volume-slider"),
+          mainContent: document.getElementById("main-content"),
+          toastContainer: document.getElementById("toast-container"),
+        };
+
+        // --- API & Utils ---
+        const api = {
+          async fetch(url, options = {}) {
+            try {
+              const response = await fetch(url, {
+                method: "POST",
+                headers: { "X-Requested-With": "XMLHttpRequest" },
+                ...options,
+              });
+              if (response.status === 401) {
+                window.location.href = "/login";
+                return;
+              }
+              if (!response.ok)
+                throw new Error(`HTTP error ${response.status}`);
+              return response.json();
+            } catch (error) {
+              console.error("API Error:", error);
+              utils.showToast("Network or server error", "error");
+              throw error;
+            }
+          },
+          getStatus: () => api.fetch("/api/status/all", { method: "GET" }),
+          toggleApp: (appName) => api.fetch(`/api/app/${appName}/toggle`),
+          performAction: (action) => api.fetch(`/api/action/${action}`),
+          setVolume: (value) => api.fetch(`/api/volume/${value}`),
+        };
+
+        const utils = {
+          showToast(message, type = "info", duration = 3000) {
+            const toast = document.createElement("div");
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas fa-${
+              type === "success" ? "check-circle" : "exclamation-circle"
+            }"></i><span> ${message}</span>`;
+            elements.toastContainer.appendChild(toast);
+            toast.offsetHeight;
+            toast.classList.add("show");
+            setTimeout(() => {
+              toast.classList.remove("show");
+              setTimeout(() => elements.toastContainer.removeChild(toast), 400);
+            }, duration);
+          },
+          debounce(func, delay) {
+            let timeout;
+            return (...args) => {
+              clearTimeout(timeout);
+              timeout = setTimeout(() => func.apply(this, args), delay);
+            };
+          },
+        };
+
+        // --- UI Rendering ---
+        const render = {
+          all() {
+            this.theme();
+            this.volume();
+            this.apps();
+            this.mutedState();
+          },
+          theme() {
+            elements.body.setAttribute("data-theme", state.theme);
+            elements.themeToggle.querySelector("i").className =
+              state.theme === "dark" ? "fas fa-sun" : "fas fa-moon";
+          },
+          // volume() {
+          //   elements.volumeSlider.value = state.volume.volume;
+          //   elements.volumeSlider.nextElementSibling.nextElementSibling.textContent = `${state.volume.volume}%`;
+          // },
+          volume() {
+            const display = document.getElementById("volume-display");
+            elements.volumeSlider.value = state.volume.volume;
+            if (display) display.textContent = `${state.volume.volume}%`;
+          },
+          apps() {
+            for (const [appName, isRunning] of Object.entries(state.apps)) {
+              document
+                .querySelector(`.control-card[data-app="${appName}"]`)
+                ?.classList.toggle("running", isRunning);
+            }
+          },
+          modifierState() {
+            const modifierActions = ["press_alt", "press_ctrl", "press_shift"];
+            document.querySelectorAll("[data-action]").forEach((btn) => {
+              if (modifierActions.includes(btn.dataset.action)) {
+                btn.classList.remove("running");
+              }
+            });
+            if (state.activeModifiers && state.activeModifiers.length > 0) {
+              state.activeModifiers.forEach((modifier) => {
+                const activeBtn = document.querySelector(
+                  `[data-action="press_${modifier}"]`
+                );
+                if (activeBtn) {
+                  activeBtn.classList.add("running");
+                }
+              });
+            }
+          },
+          mutedState() {
+            const { speaker_muted, mic_muted, is_headphone_active } =
+              state.muted_state;
+            const soundBtn = document.querySelector(
+              '[data-action="mute_toggle_sound"]'
+            );
+            const micBtn = document.querySelector(
+              '[data-action="mute_toggle_mic"]'
+            );
+            const deviceBtn = document.querySelector(
+              '[data-action="audio_device_toggle"]'
+            );
+
+            if (soundBtn) {
+              soundBtn.classList.toggle("unmuted", !speaker_muted);
+              soundBtn.classList.toggle("muted", speaker_muted);
+              soundBtn.querySelector("i").className = speaker_muted
+                ? "fas fa-volume-mute"
+                : "fas fa-volume-up";
+            }
+            if (micBtn) {
+              micBtn.classList.toggle("unmuted", !mic_muted);
+              micBtn.classList.toggle("muted", mic_muted);
+              micBtn.querySelector("i").className = mic_muted
+                ? "fas fa-microphone-slash"
+                : "fas fa-microphone";
+            }
+            if (deviceBtn) {
+              const icon = deviceBtn.querySelector("i");
+              icon.className = is_headphone_active
+                ? "fas fa-headphones"
+                : "fas fa-volume-up";
+            }
+          },
+        };
+
+        // --- Event Handlers ---
+        let modifierUITimer = null;
+        const handlers = {
+          // async handleInteraction(element) {
+          handleInteraction: utils.debounce(async function (element) {
+            if (element.classList.contains("loading")) return;
+            element.classList.add("loading");
+            element.style.pointerEvents = "none";
+
+            const action = element.dataset.action;
+            const appName = element.dataset.app;
+
+            if (element.dataset.confirm && !confirm(element.dataset.confirm)) {
+              element.classList.remove("loading");
+              element.style.pointerEvents = "";
+              return;
+            }
+
+            try {
+              let response;
+              if (appName) {
+                response = await api.toggleApp(appName);
+              } else if (action === "press_alt_tab_cycle") {
+                if (state.activeModifiers.includes("alt")) {
+                  response = await api.performAction("press_tab");
+                } else {
+                  await api.performAction("press_alt");
+                  response = await api.performAction("press_tab");
+                }
+              } else if (action === "press_alt_f4") {
+                await api.performAction("press_alt");
+                response = await api.performAction("press_f4");
+              } else if (action) {
+                response = await api.performAction(action);
+              }
+
+              if (response?.success) {
+                if (response.message) {
+                  utils.showToast(response.message, "success");
+                }
+              } else {
+                utils.showToast(response?.message || "Action failed", "error");
+              }
+
+              if (response?.activeModifiers !== undefined) {
+                clearTimeout(modifierUITimer);
+                state.activeModifiers = response.activeModifiers;
+                render.modifierState();
+                if (state.activeModifiers.length > 0) {
+                  modifierUITimer = setTimeout(() => {
+                    state.activeModifiers = [];
+                    render.modifierState();
+                  }, 5200);
+                }
+              }
+              if (response?.state !== undefined) {
+                state.muted_state = response.state;
+                render.mutedState();
+              }
+              if (response?.running !== undefined) {
+                state.apps[appName] = response.running;
+                render.apps();
+              }
+            } finally {
+              element.classList.remove("loading");
+              element.style.pointerEvents = "";
+            }
+          }, 150),
+          onThemeToggle() {
+            state.theme = state.theme === "dark" ? "light" : "dark";
+            localStorage.setItem("theme", state.theme);
+            render.theme();
+          },
+          onVolumeChange: utils.debounce(async (e) => {
+            const value = parseInt(e.target.value);
+            try {
+              const response = await api.setVolume(value);
+              if (response?.success && response.message) {
+                utils.showToast(response.message, "success");
+              } else if (!response?.success && response.message) {
+                utils.showToast(response.message, "error");
+              }
+            } catch (error) {
+              console.error("Failed to set volume:", error);
+            }
+          }, 200),
+        };
+
+        // --- Initialization ---
+        async function init() {
+          try {
+            const data = await api.getStatus();
+            Object.assign(state, data);
+            render.all();
+            utils.showToast("Remote Connected", "success");
+          } catch (error) {
+            utils.showToast("Could not connect to server.", "error");
+          } finally {
+            document.querySelector(".volume-control").style.opacity = 1;
+          }
+
+          elements.themeToggle.addEventListener(
+            "click",
+            handlers.onThemeToggle
+          );
+          elements.volumeSlider.addEventListener("input", (e) => {
+            e.target.nextElementSibling.nextElementSibling.textContent = `${e.target.value}%`;
+          });
+          elements.volumeSlider.addEventListener(
+            "change",
+            handlers.onVolumeChange
+          );
+
+          elements.mainContent.addEventListener("click", (e) => {
+            const targetButton = e.target.closest("[data-action], [data-app]");
+            if (targetButton) handlers.handleInteraction(targetButton);
+          });
+        }
+
+        init();
+      });
+    </script>
+  </body>
+</html>
