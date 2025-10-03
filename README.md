@@ -3,6 +3,11 @@ Remote Control with a Config via Web
 lightweight stand alone python app to control your pc like a remote via pc
 
 this is sloppy and lazy code for a lazy guy who refuse to get up and press the pause button
+## How it works ?
+it's use 3 things
+ - python
+ - windows console commands
+ - [NirCmd](https://www.nirsoft.net/utils/nircmd.html) for more/better console commands
 ## how to do use it
 ### First
  - you need python
