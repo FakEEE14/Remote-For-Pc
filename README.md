@@ -13,7 +13,7 @@ this is sloppy and lazy code for a lazy guy who refuse to get up and press the p
  - download the app from releases
  - or
  - compile it your self with pyinstaller
-`python -m PyInstaller --onefile --noconsole --icon="app_icon.ico" remote_pc.py --add-data "templates;templates" --add-data "static;static"`
+ - `python -m PyInstaller --onefile --noconsole --icon="app_icon.ico" remote_pc.py --add-data "templates;templates" --add-data "static;static"`
 ### Third
  - config it how you want
 
